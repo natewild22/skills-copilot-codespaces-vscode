@@ -1,0 +1,63 @@
+function love.load()
+    -- Plane properties
+    plane = {x = 400, y = 300, speed = 0, maxSpeed = 200, angle = 0}
+    turnSpeed = 2
+    liftForce = 5
+
+    -- Controls
+    controls = {left = false, right = false, up = false, down = false}
+    touches = {}
+end
+
+function love.update(dt)
+    -- Handle movement
+    if controls.up then
+        plane.speed = math.min(plane.speed + 100 * dt, plane.maxSpeed)
+    elseif controls.down then
+        plane.speed = math.max(plane.speed - 100 * dt, 0)
+    end
+    
+    if controls.left then
+        plane.angle = plane.angle - turnSpeed * dt * 50
+    elseif controls.right then
+        plane.angle = plane.angle + turnSpeed * dt * 50
+    end
+
+    -- Move plane forward
+    local rad = math.rad(plane.angle)
+    plane.x = plane.x + math.cos(rad) * plane.speed * dt
+    plane.y = plane.y + math.sin(rad) * plane.speed * dt
+end
+
+function love.draw()
+    -- Draw the plane (simple triangle shape)
+    love.graphics.push()
+    love.graphics.translate(plane.x, plane.y)
+    love.graphics.rotate(math.rad(plane.angle))
+    love.graphics.polygon("fill", -20, 10, 20, 0, -20, -10)
+    love.graphics.pop()
+
+    -- Draw touch controls
+    love.graphics.print("Tap Left/Right to Turn, Tap Up/Down to Adjust Speed", 10, 10)
+end
+
+function love.touchpressed(id, x, y, dx, dy, pressure)
+    touches[id] = {x = x, y = y}
+    local screenWidth = love.graphics.getWidth()
+    local screenHeight = love.graphics.getHeight()
+    
+    if x < screenWidth / 3 then
+        controls.left = true
+    elseif x > screenWidth * 2 / 3 then
+        controls.right = true
+    elseif y < screenHeight / 2 then
+        controls.up = true
+    else
+        controls.down = true
+    end
+end
+
+function love.touchreleased(id, x, y, dx, dy, pressure)
+    touches[id] = nil
+    controls.left, controls.right, controls.up, controls.down = false, false, false, false
+end
